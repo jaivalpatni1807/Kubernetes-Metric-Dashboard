@@ -1,6 +1,5 @@
 StatefulSet
 volumeClaimTemplates
-readiness & liveness probe
 headless Service
 DaemonSet
 Deployment
