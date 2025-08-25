@@ -8,4 +8,3 @@ Service
 HorizontalPodAutoscaler
 Job
 CronJob
-2+ years of experience with load balanced applications like Akamai, NetScaler
