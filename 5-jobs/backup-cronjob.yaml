@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-timescaledb
+  namespace: metrics-dashboard
+spec:
+  schedule: "0 0 * * * "
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:14
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: timescaledb-secret   # <-- your DB secret
+                  key: password
+            command:
+              - sh
+              - -c
+              - |
+                pg_dump \
+                  -h timescaledb-0.timescaledb.metrics-dashboard.svc.cluster.local \
+                  -U admin \
+                  -d metrics \
+                  > /backup/db-$(date +\%Y-\%m-\%d).sql
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          restartPolicy: Never
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc

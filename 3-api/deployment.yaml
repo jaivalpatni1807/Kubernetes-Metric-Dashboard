@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-api
+  namespace: metrics-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-api
+  template:
+    metadata:
+      labels:
+        app: metrics-api
+    spec:
+      containers:
+      - name: metrics-api
+        image: metrics-api:v2
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "500m"

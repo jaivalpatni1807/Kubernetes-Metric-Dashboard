@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timescaledb
+  namespace: metrics-dashboard
+spec:
+  serviceName: "timescaledb"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timescaledb
+  template:
+    metadata:
+      labels:
+        app: timescaledb
+    spec:
+      containers:
+      - name: timescaledb
+        image: timescale/timescaledb:latest-pg14
+        env:
+          - name: POSTGRES_DB
+            value: metrics
+          - name: POSTGRES_USER
+            value: admin
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: timescaledb-secret
+                key: password
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        readinessProbe:
+            exec:
+              command: ["pg_isready","-U","admin"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+        livenessProbe:
+            exec:
+              command: ["pg_isready","-U","admin"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 3Gi
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: timescaledb-secret
+  namespace: metrics-dashboard
+type: Opaque
+stringData:
+  password: "admin123"

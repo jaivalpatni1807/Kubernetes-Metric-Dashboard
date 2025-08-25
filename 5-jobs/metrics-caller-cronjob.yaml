@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: metrics-caller
+  namespace: metrics-dashboard
+spec:
+  schedule: "0 */2 * * *"   # every 2 minutes for testing
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: curl-container
+            image: curlimages/curl:latest
+            args:
+              - -s
+              - -X
+              - POST
+              - http://metrics-api:8080/metrics   # call your service inside the cluster
+          restartPolicy: OnFailure
